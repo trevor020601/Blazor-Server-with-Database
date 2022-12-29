@@ -1,0 +1,90 @@
+﻿<!--
+Author:      Trevor Karl and Rodney Harris
+CLID:        C00441253 and C00445623 
+Class:       CMPS 358
+Assignment:  Project #5
+Due Date:    28 November 2022
+Description: Keeps the dictionary.db in sync in case there are changes
+             and also queries and displays all definitions in the db
+-->
+@page "/"
+@using BlazorServerWDB.Data
+
+@inject DictionaryDbContext _context
+
+@code {
+    private Dictionary dictionary = new();
+
+    /*
+     * HandleValidSubmit
+     *
+     * Output: Saves changes to the database when an entry is added
+     *
+     * Saves all changes made in the context to the database
+    */
+    private async void HandleValidSubmit()
+    {
+        try
+        {
+            _context.Add(dictionary);
+            await _context.SaveChangesAsync();
+        }
+        catch
+        {
+            StateHasChanged();
+        }
+        dictionary = new Dictionary();
+        StateHasChanged();
+    }
+
+    /*
+     * GetAllDefinitions
+     *
+     * Output: results (all of dictionary.db entries)
+     *
+     * Queries the database for all words and their definitions
+     * so they can be displayed on the Definitions page
+    */
+    private IOrderedQueryable<Dictionary> GetAllDefinitions()
+    {
+        try
+        {
+            var results =
+                from row in _context.Dictionaries
+                orderby row.Word
+                select row;
+                return results;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+    /*
+     * DeleteThisDefinition
+     *
+     * Input: d (entry in dictionary.db)
+     *
+     * Output: Updates the database by removing tuple d
+     *
+     * Deletes a definition from the dictionary database
+    */
+    private async void DeleteThisDefinition(Dictionary d)
+    {
+        _context.Remove(d);
+        _context.SaveChanges();
+    }
+}
+
+<div class="definition-display">
+    <br/>
+    Definitions:<br/><br/>
+    @foreach (var d in GetAllDefinitions())
+    {
+        <div>
+            <span class="btn btn-primary" @onclick="@(() => {
+                DeleteThisDefinition(d); })">Delete</span>
+                @d.Word: @d.Definition
+        </div>
+    }
+</div>

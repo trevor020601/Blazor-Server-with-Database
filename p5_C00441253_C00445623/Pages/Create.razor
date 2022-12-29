@@ -1,0 +1,62 @@
+<!--
+Author:      Trevor Karl and Rodney Harris
+CLID:        C00441253 and C00445623 
+Class:       CMPS 358
+Assignment:  Project #5
+Due Date:    28 November 2022
+Description: Page for creating definitions to add to the database 
+-->
+@page "/create"
+@using BlazorServerWDB
+@using Microsoft.AspNetCore.Components
+@inject BlazorServerWDB.Data.DictionaryDbContext _context
+@code {
+    // Creates a new Dictionary object to add to the db
+    private Dictionary dictionary = new Dictionary();
+    
+    /*
+     * HandleValidSubmit
+     *
+     * Output: Adds the new definition to the database
+     *
+     * When a valid entry has been submitted, it will update the
+     * database with the new entry
+    */
+    private async void HandleValidSubmit()
+    {
+        try
+        {
+            _context.Add(dictionary);
+            await _context.SaveChangesAsync();
+        }
+        catch
+        {
+            base.StateHasChanged();
+        }
+        dictionary = new Dictionary();
+        base.StateHasChanged();
+    }
+}
+
+<div class="definition-form">
+    <EditForm Model=@dictionary
+    OnValidSubmit=@HandleValidSubmit>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Word">Word</label>
+        <InputText id="Word" class="form-control"
+        @bind-Value="dictionary.Word" />
+    </div>
+
+    <div class="form-group">
+        <label for="Definition">Definition</label>
+        <InputTextArea id="Definition" class="form-control"
+        @bind-Value="dictionary.Definition" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">
+        Create Definition</button>
+    </EditForm>
+</div>
